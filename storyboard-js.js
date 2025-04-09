@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // DOM Elements
     const elements = {
+        newProjectBtn: document.getElementById('new-project-btn'),
         newSceneBtn: document.getElementById('new-scene-btn'),
         emptyStateBtn: document.getElementById('empty-state-btn'),
         scenesContainer: document.getElementById('scenes-container'),
@@ -25,6 +26,7 @@ document.addEventListener('DOMContentLoaded', function() {
         exportPdfBtn: document.getElementById('export-pdf-btn'),
         importFile: document.getElementById('import-file'),
         projectTitle: document.getElementById('project-title'),
+        totalTime: document.getElementById('total-time'),
         previewBtn: document.getElementById('preview-btn'),
         previewModal: document.getElementById('preview-modal'),
         closeModal: document.querySelector('.close-modal'),
@@ -100,15 +102,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Attach event listeners
             attachEventListeners();
             
-            // Critical fallback: direct attach event to new scene buttons by selector
-            console.log('Adding direct event handlers to buttons as fallback...');
-            document.querySelectorAll('#new-scene-btn, #empty-state-btn').forEach(btn => {
-                btn.addEventListener('click', function(e) {
-                    console.log('Direct button click detected on', btn.id);
-                    e.preventDefault();
-                    createNewScene();
-                });
-            });
+            // No duplicate event listeners
             
             console.log('StoryBoard App initialized successfully');
         } catch (error) {
@@ -120,6 +114,22 @@ document.addEventListener('DOMContentLoaded', function() {
     // Update UI based on app state
     function updateUI() {
         elements.projectTitle.value = app.projectTitle;
+        
+        // Calculate and update total time
+        const totalSeconds = app.scenes.reduce((total, scene) => total + (scene.duration || 5), 0);
+        let timeDisplay = '';
+        
+        if (totalSeconds < 60) {
+            timeDisplay = `${totalSeconds}s`;
+        } else {
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            timeDisplay = `${minutes}m ${seconds}s`;
+        }
+        
+        if (elements.totalTime) {
+            elements.totalTime.textContent = timeDisplay;
+        }
         
         // Show/hide empty state
         if (app.scenes.length === 0) {
@@ -310,6 +320,21 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Attach global event listeners
     function attachEventListeners() {
+        // New project button
+        if (elements.newProjectBtn) {
+            elements.newProjectBtn.addEventListener('click', function(e) {
+                console.log('New Project button clicked!');
+                e.preventDefault();
+                if (app.scenes.length > 0) {
+                    if (confirm('Creating a new project will clear all current scenes. Continue?')) {
+                        createNewProject();
+                    }
+                } else {
+                    createNewProject();
+                }
+            });
+        }
+        
         // New scene button
         console.log('Setting up New Card button:', elements.newSceneBtn);
         if (!elements.newSceneBtn) {
@@ -425,6 +450,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         });
+    }
+    
+    // Create a new project
+    function createNewProject() {
+        console.log('Creating new project...');
+        try {
+            // Reset app state
+            app.scenes = [];
+            app.lastSceneId = 0;
+            app.projectTitle = "Untitled Project";
+            app.previewCurrentIndex = 0;
+            
+            // Save and update UI
+            saveToLocalStorage();
+            updateUI();
+            
+            console.log('New project created');
+        } catch (error) {
+            console.error('Error creating new project:', error);
+            alert('Error creating new project. Please try again.');
+        }
     }
     
     // Create a new scene
@@ -938,9 +984,5 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize the app
     init();
     
-    // Last resort fallback - add create function to window object
-    window.createNewStoryboardCard = function() {
-        console.log('Manual createNewStoryboardCard function called from window object');
-        createNewScene();
-    };
+    // No fallback function needed
 });

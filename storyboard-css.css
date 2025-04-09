@@ -183,6 +183,19 @@ h1, h2, h3, h4, h5, h6 {
     background-color: white;
 }
 
+.total-time-indicator {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-top: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.total-time-indicator i {
+    color: var(--primary-color);
+}
+
 .view-options {
     display: flex;
     gap: 0.5rem;
