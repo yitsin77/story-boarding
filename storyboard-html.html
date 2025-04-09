@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StoryCard Creator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="storyboard-css.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="app-logo">
+                <i class="fas fa-film"></i>
+                <h1>StoryCards</h1>
+            </div>
+            <div class="action-buttons">
+                <button id="new-scene-btn" class="primary-btn"><i class="fas fa-plus"></i> New Card</button>
+                <button id="import-btn" class="secondary-btn"><i class="fas fa-file-import"></i> Import</button>
+                <button id="export-btn" class="secondary-btn"><i class="fas fa-file-export"></i> Export</button>
+                <button id="export-pdf-btn" class="secondary-btn"><i class="fas fa-file-pdf"></i> Export PDF</button>
+            </div>
+            <div class="timeline-container">
+                <h3>Scene Order</h3>
+                <div id="scenes-timeline" class="scenes-timeline">
+                    <!-- Timeline scenes will be generated here -->
+                </div>
+            </div>
+            <div class="file-inputs">
+                <input type="file" id="import-file" accept=".json" style="display: none;">
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="top-bar">
+                <div class="project-info">
+                    <input type="text" id="project-title" placeholder="Untitled Project" class="project-title-input">
+                </div>
+                <div class="view-options">
+                    <button id="preview-btn" class="icon-btn"><i class="fas fa-eye"></i> Preview</button>
+                    <button id="grid-view-btn" class="icon-btn active"><i class="fas fa-th"></i></button>
+                    <button id="list-view-btn" class="icon-btn"><i class="fas fa-list"></i></button>
+                </div>
+            </div>
+
+            <!-- Scenes Container -->
+            <div id="scenes-container" class="scenes-container card-grid">
+                <!-- Scene cards will be generated here -->
+            </div>
+
+            <!-- Empty State -->
+            <div id="empty-state" class="empty-state">
+                <div class="empty-state-content">
+                    <i class="fas fa-film"></i>
+                    <h2>No Scene Cards Yet</h2>
+                    <p>Create your first scene card to get started</p>
+                    <button id="empty-state-btn" class="primary-btn"><i class="fas fa-plus"></i> Create Card</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scene Card Template (Hidden) -->
+    <template id="scene-template">
+        <div class="scene-card" data-scene-id="">
+            <div class="scene-card-header">
+                <div class="scene-number"></div>
+                <div class="scene-actions">
+                    <button class="icon-btn edit-card-btn"><i class="fas fa-edit"></i></button>
+                    <button class="icon-btn move-up-btn"><i class="fas fa-arrow-up"></i></button>
+                    <button class="icon-btn move-down-btn"><i class="fas fa-arrow-down"></i></button>
+                    <button class="icon-btn delete-scene-btn"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>
+            <div class="scene-card-image">
+                <div class="image-preview">
+                    <img class="scene-image" src="" alt="Scene Image">
+                    <div class="upload-placeholder">
+                        <i class="fas fa-image"></i>
+                        <p>Click to upload image</p>
+                    </div>
+                </div>
+                <input type="file" class="image-upload" accept="image/*">
+            </div>
+            <div class="scene-card-content">
+                <input type="text" class="scene-title" placeholder="Scene Title">
+                <p class="scene-duration"><i class="fas fa-clock"></i> <span>5s</span></p>
+                <p class="scene-description-preview"></p>
+            </div>
+        </div>
+    </template>
+
+    <!-- Scene Edit Modal Template -->
+    <template id="edit-modal-template">
+        <div class="edit-modal">
+            <div class="edit-modal-content">
+                <div class="edit-modal-header">
+                    <h2>Edit Scene Card</h2>
+                    <button class="close-edit-modal">&times;</button>
+                </div>
+                <div class="edit-modal-body">
+                    <div class="form-group">
+                        <label>Title</label>
+                        <input type="text" class="edit-scene-title" placeholder="Scene Title">
+                    </div>
+                    <div class="form-group">
+                        <label>Duration (seconds)</label>
+                        <input type="number" class="edit-scene-duration" min="1" value="5">
+                    </div>
+                    <div class="form-group">
+                        <label>Visual Description</label>
+                        <textarea class="edit-visual-description" placeholder="Describe what's happening in this scene..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Audio Narration</label>
+                        <textarea class="edit-audio-narration" placeholder="Add narration text for this scene..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Notes</label>
+                        <textarea class="edit-scene-notes" placeholder="Additional notes, ideas, or directions..."></textarea>
+                    </div>
+                </div>
+                <div class="edit-modal-footer">
+                    <button class="cancel-edit-btn secondary-btn">Cancel</button>
+                    <button class="save-edit-btn primary-btn">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Timeline Scene Template (Hidden) -->
+    <template id="timeline-scene-template">
+        <div class="timeline-scene" data-scene-id="">
+            <div class="timeline-scene-preview">
+                <img src="" alt="Scene Thumbnail">
+            </div>
+            <div class="timeline-scene-info">
+                <span class="timeline-scene-number"></span>
+                <span class="timeline-scene-duration"></span>
+            </div>
+        </div>
+    </template>
+    
+    <!-- Preview Modal -->
+    <div id="preview-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Storyboard Preview</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="preview-controls">
+                    <button id="prev-slide"><i class="fas fa-chevron-left"></i></button>
+                    <div class="preview-info">
+                        <span id="current-slide">1</span> / <span id="total-slides">1</span>
+                    </div>
+                    <button id="next-slide"><i class="fas fa-chevron-right"></i></button>
+                </div>
+                <div id="preview-container" class="preview-container">
+                    <!-- Preview content will be generated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal Container (will be populated dynamically) -->
+    <div id="edit-modal-container"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="storyboard-js.js"></script>
+    <script>
+        // Emergency fallback button if all else fails
+        window.addEventListener('load', function() {
+            console.log('Window load event - adding emergency button');
+            setTimeout(function() {
+                // Check if we already have cards
+                const hasCards = document.querySelector('.scene-card');
+                if (!hasCards) {
+                    const emergencyBtn = document.createElement('button');
+                    emergencyBtn.style.position = 'fixed';
+                    emergencyBtn.style.bottom = '20px';
+                    emergencyBtn.style.right = '20px';
+                    emergencyBtn.style.zIndex = '9999';
+                    emergencyBtn.style.padding = '10px 15px';
+                    emergencyBtn.style.backgroundColor = '#ef4444';
+                    emergencyBtn.style.color = 'white';
+                    emergencyBtn.style.border = 'none';
+                    emergencyBtn.style.borderRadius = '5px';
+                    emergencyBtn.style.cursor = 'pointer';
+                    emergencyBtn.innerHTML = 'Emergency: Add New Card';
+                    emergencyBtn.onclick = function() {
+                        console.log('Emergency button clicked');
+                        if (window.createNewStoryboardCard) {
+                            window.createNewStoryboardCard();
+                        } else {
+                            alert('Direct createNewScene function not found. Try refreshing the page.');
+                        }
+                    };
+                    document.body.appendChild(emergencyBtn);
+                }
+            }, 1000); // Give the main script a chance to initialize
+        });
+    </script>
+</body>
+</html>
